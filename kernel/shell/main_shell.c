@@ -1,9 +1,9 @@
 #include <stdint.h>
-#include "../core/idt/IDT.h"
+#include "../idt/IDT.h"
 #include "../data/global_value.h"
-#include "../core/keyboard/keyboard.h"
 #include "../function/function.h"
 #include "../shutdown/main_shutdown.h"
+#include "../../keyboard_driver/main.h"
 
 char memory[300] = {0x00};
 

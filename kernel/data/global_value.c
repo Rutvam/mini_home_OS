@@ -4,4 +4,9 @@
 
 struct VARIABLE var;
 
+void set_loader_params(struct LOADER_PARAMS *params)
+{
+	var.params = params;
+}
+
 // Debut global_value.c

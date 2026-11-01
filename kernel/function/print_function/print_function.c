@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include "./print_function.h"
-#include "./function.h"
-#include "../data/global_value.h"
+#include "../function.h"
+#include "../../data/global_value.h"
 
 void print_outb(const char *text, ...)
 {
@@ -223,7 +223,9 @@ void print(const char *text, ...)
         }
 
         if (var.screen.cursor_position >= var.screen.VBSize)
-            my.function.scroll();
+        {
+			my.function.scroll();
+        }
     }
 
     va_end(args);

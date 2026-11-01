@@ -2,14 +2,14 @@
 #include <efi.h>
 #include <efilib.h>
 #include <stdint.h>
-#include "./core/idt/IDT.h"
+#include "./idt/IDT.h"
 #include "./function/function.h"
-#include "./core/keyboard/keyboard.h"
 #include "./data/global_value.h"
 #include "./pong/main_pong.h"
 #include "./shell/main_shell.h"
 #include "./function/graphics/graphics.h"
 #include "./shutdown/main_shutdown.h"
+#include "../keyboard_driver/main.h"
 
 // Dans kernel.c
 int main(struct LOADER_PARAMS *params)
@@ -34,7 +34,7 @@ int main(struct LOADER_PARAMS *params)
 	my.print.outb("[ OK ] Init all function in struct my.");
 
 	my.init.var();
-	my.print("[ OK ] Init all variable in struct var.");
+	my.print.outb("[ OK ] Init all variable in struct var.");
 
 
 	my.print.outb("FrameBuffer size: %d\r\n", var.params->GPU_Configs->FrameBuffer_Size);
@@ -44,7 +44,7 @@ int main(struct LOADER_PARAMS *params)
 	int exp = my.random.randint(1, 3);
 	int value = my.math.pow(base, exp);
 	// my.print.basic("AB %d", my.random.randint(-100, 100));
-	my.print.basic(" ----- ");
+	// my.print.basic(" ----- ");
 	// my.print.basic("%d^(%d) = %d | ", base, exp, value);
 	// my.print.basic("%d/%d/%d %d:%d.%d | ", var.time.day, var.time.month, var.time.year, var.time.hour, var.time.minute, var.time.second);
 	// for (int i = 0; i < 100; i++)

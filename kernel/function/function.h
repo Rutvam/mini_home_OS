@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdarg.h>
-#include <efi.h>
 #ifndef FUNCTION_H
 #define FUNCTION_H
 

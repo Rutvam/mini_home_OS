@@ -103,7 +103,7 @@ struct SCREEN_VALUE
 	uint32_t *FB;
 	int caracter_width;
 	int caracter_height;
-	uint32_t (*police)[12][8];
+	uint8_t (*police)[12][8];
 	int cursor_position;
 	int pixel_position;
 };
@@ -122,6 +122,7 @@ struct VARIABLE
 };
 
 extern struct VARIABLE var;
+void set_loader_params(struct LOADER_PARAMS *params);
 
 #endif
 // Fin global_value.h

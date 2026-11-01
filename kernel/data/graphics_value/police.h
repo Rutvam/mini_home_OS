@@ -2,6 +2,6 @@
 #ifndef POLICE_H
 #define POLICE_H
 
-extern uint32_t police[128][12][8];
+extern uint8_t police[126][12][8];
 
 #endif

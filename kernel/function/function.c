@@ -1,8 +1,8 @@
-#include <efi.h>
+//#include <efi.h>
 #include "./function.h"
-#include "./random.h"
-#include "./math.h"
-#include "./print_function.h"
+#include "./random/random.h"
+#include "./math/math.h"
+#include "./print_function/print_function.h"
 #include "./graphics/graphics.h"
 #include "../data/global_value.h"
 #include "../data/graphics_value/police.h"
@@ -182,6 +182,5 @@ void init_function(int is_qemu)
 	seed_random(my.function.time());
 	return;
 }
-
 
 

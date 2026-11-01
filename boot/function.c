@@ -359,7 +359,7 @@ EFI_STATUS LoadSegment(EFI_BOOT_SERVICES *BS, Elf64_Phdr *ph)
 	Destination[3] = 0xDD;
 
 	Print(L"\t\tRead back: %02x %02x %02x %02x\r\n", Destination[0], Destination[1], Destination[2], Destination[3]);
-
+	
 	// Restore the original bytes.
 	Destination[0] = Test0;
 	Destination[1] = Test1;
@@ -369,7 +369,8 @@ EFI_STATUS LoadSegment(EFI_BOOT_SERVICES *BS, Elf64_Phdr *ph)
 	// Perform the normal copy.
 	Print(L"\tCopying segment with CopyMem()...\r\n");
 
-	CopyMem(Destination, Source, ph->p_filesz);
+	// Fr: Desactiver car il ne copy rien, il faut faire un copy manuel
+	// CopyMem(Destination, Source, ph->p_filesz);
 
 	errors = VerifyCopy(Destination, Source, ph->p_filesz);
 

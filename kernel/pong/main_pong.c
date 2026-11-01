@@ -1,7 +1,7 @@
 #include <stdint.h>
-#include "../core/idt/IDT.h"
+#include "../idt/IDT.h"
 #include "../data/global_value.h"
-#include "../core/keyboard/keyboard.h"
+#include "../../keyboard_driver/main.h"
 #include "../function/function.h"
 
 uint8_t map[25][80] = {0};

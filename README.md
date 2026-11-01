@@ -10,43 +10,67 @@ Ce projet est un mini OS maison permetant de jouer a des jeux dans le future et 
 ❯ tree
 .
 ├── boot
-│   ├── boot.c
 │   ├── function.c
-│   └── function.h
+│   ├── function.h
+│   ├── main.c
+│   └── main.rs
 ├── compile
 │   ├── boot
 │   │   ├── boot.efi
-│   │   └── function.o
+│   │   ├── function.o
+│   │   └── main.o
 │   └── kernel
-│       └── kernel.elf
+│       ├── function.o
+│       ├── global_value.o
+│       ├── graphics.o
+│       ├── IDT.o
+│       ├── kernel.elf
+│       ├── kernel_entry.o
+│       ├── main.o
+│       ├── math.o
+│       ├── memory.o
+│       ├── police.o
+│       ├── pong
+│       │   └── main_pong.o
+│       ├── print_function.o
+│       ├── random.o
+│       ├── shell
+│       │   └── main_shell.o
+│       └── shutdown
+│           └── main_shutdown.o
 ├── doc
 │   └── ACPI.md
 ├── esp.img
 ├── esp.vdi
 ├── kernel
 │   ├── core
-│   │   ├── function
-│   │   │   ├── function.c
-│   │   │   ├── function.h
-│   │   │   ├── graphics
-│   │   │   │   ├── graphics.c
-│   │   │   │   └── graphics.h
-│   │   │   ├── math.c
-│   │   │   ├── math.h
-│   │   │   ├── memory.c
-│   │   │   ├── memory.h
-│   │   │   ├── random.c
-│   │   │   └── random.h
-│   │   ├── idt
-│   │   │   ├── IDT.c
-│   │   │   └── IDT.h
-│   │   ├── keyboard
-│   │   │   ├── keyboard.c
-│   │   │   └── keyboard.h
-│   │   └── value
 │   ├── data
 │   │   ├── global_value.c
-│   │   └── global_value.h
+│   │   ├── global_value.h
+│   │   └── graphics_value
+│   │       ├── police.c
+│   │       └── police.h
+│   ├── function
+│   │   ├── function.c
+│   │   ├── function.h
+│   │   ├── graphics
+│   │   │   ├── graphics.c
+│   │   │   └── graphics.h
+│   │   ├── math
+│   │   │   ├── math.c
+│   │   │   └── math.h
+│   │   ├── memory
+│   │   │   ├── memory.c
+│   │   │   └── memory.h
+│   │   ├── print_function
+│   │   │   ├── print_function.c
+│   │   │   └── print_function.h
+│   │   └── random
+│   │       ├── random.c
+│   │       └── random.h
+│   ├── idt
+│   │   ├── IDT.c
+│   │   └── IDT.h
 │   ├── kernel_entry.asm
 │   ├── linker.ld
 │   ├── main.c
@@ -59,11 +83,15 @@ Ce projet est un mini OS maison permetant de jouer a des jeux dans le future et 
 │   └── shutdown
 │       ├── main_shutdown.c
 │       └── main_shutdown.h
+├── keyboard_driver
+│   ├── main_keyboard_driver.c
+│   └── main_keyboard_driver.h
+├── LICENSE
 ├── Makefile
 ├── ovmf_vars.fd
 └── README.md
 
-17 directories, 37 files
+24 directories, 58 files
 ```
 
 ## Futur amelioration

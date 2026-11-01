@@ -20,11 +20,11 @@ SECTIONS
 		*(.data)  
 	}  
 
-	.bss : ALIGN(16)  
-	{  
-		*(COMMON)  
-		*(.bss)  
-	}  
+	.bss : ALIGN(16)
+	{
+		*(COMMON)
+		*(.bss .bss.*)
+	}
 
 	/DISCARD/ :  
 	{  
