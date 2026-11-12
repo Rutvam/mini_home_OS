@@ -2,14 +2,63 @@
 #include "./print_function.h"
 #include "../function.h"
 #include "../../data/global_value.h"
-#include "../../serial/serial.h"
 
 void print_outb(const char *text, ...)
 {
 	va_list args;
 	va_start(args, text);
-	serial_vprintf(text, args);
+
+	for (int i = 0; text[i] != 0x00; i++)
+	{
+		if (text[i] == '%' && text[i + 1] == 'c') {
+			char caracter = va_arg(args, char);
+			my.outb(0x3F8, caracter);
+			i++;
+		} else if (text[i] == '%' && text[i + 1] == 'd') {
+			int value = va_arg(args, int);
+			char buffer[12];
+			int i = 0;
+
+			if (value == 0)
+			{
+			    my.outb(0x3F8, '0');
+			    return;
+			}
+
+			if (value < 0)
+			{
+			    my.outb(0x3F8, '-');
+			    value = -value;
+			}
+
+			while (value > 0)
+			{
+			    buffer[i++] = '0' + (value % 10);
+			    value /= 10;
+			}
+
+			while (i > 0)
+			{
+			    my.outb(0x3F8, buffer[--i]);
+			}
+			i++;
+		} else if (text[i] == '%' && text[i + 1] == 's') {
+			char *string = va_arg(args, char *);
+			my.print.outb(string);
+			i++;
+		} else if (text[i] == '%' && text[i + 1] == 'h') {
+			int value = va_arg(args, int);
+			char hex[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+			char caracter = hex[value];
+			my.outb(0x3F8, caracter);
+			i++;
+		} else {
+			my.outb(0x3F8, text[i]);
+		}
+	}
+
 	va_end(args);
+	return;
 }
 
 void NO_print(const char *text, ...)

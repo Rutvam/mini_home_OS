@@ -144,14 +144,9 @@ void init_var()
 	var.screen.FBHeight = (int)var.params->GPU_Configs.height;
 	var.screen.FBSize = (int)var.params->GPU_Configs.FrameBuffer_Size;
 	var.screen.FBPitch = (int)var.params->GPU_Configs.pitch;
-	var.screen.VB = default_video_buffer;
-	for (int i = 0; i < 8192; i++)
-	{
-		default_video_buffer[i] = 0;
-	}
 	var.screen.VBWidth = var.screen.FBWidth / var.screen.caracter_width * 2;
 	var.screen.VBHeight = var.screen.FBHeight / var.screen.caracter_height;
-	var.screen.VBSize = 8192;
+	var.screen.VBSize = var.screen.VBWidth * var.screen.VBHeight;
 	var.screen.pixel_position = 0;
 	var.screen.cursor_position = 0;
 	var.command.shutdown = "shutdown";

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdarg.h>
 
 #define COM1_PORT 0x3F8
 
@@ -16,10 +15,7 @@ void serial_putchar(char c);
 // Write a null-terminated string to COM1
 void serial_print(const char *str);
 
-// Formatted print to COM1 (%s, %c, %d, %i, %u, %x, %X, %lx, %p, %0Nx)
+// Formatted print to COM1 (%s, %c, %d, %u, %x, %X, %lx, %p, %0Nx)
 void serial_printf(const char *fmt, ...);
-
-// Formatted print using va_list to COM1
-void serial_vprintf(const char *fmt, va_list args);
 
 #endif // SERIAL_H

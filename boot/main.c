@@ -7,14 +7,10 @@
 // Enter the kernel after UEFI Boot Services have been terminated.
 static void JumpToKernel(UINT64 EntryPoint, struct LOADER_PARAMS *Params)
 {
-	__asm__ volatile (
-		"mov %0, %%rdi\n\t"
-		"mov %0, %%rcx\n\t"
-		"jmp *%1\n\t"
-		:
-		: "r"(Params), "r"(EntryPoint)
-		: "rdi", "rcx", "memory"
-	);
+	typedef void (*KernelEntry)(struct LOADER_PARAMS *);
+
+	KernelEntry Entry = (KernelEntry)(UINTN)EntryPoint;
+	Entry(Params);
 	
 	while (1)
 	{

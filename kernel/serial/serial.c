@@ -1,4 +1,5 @@
 #include "serial.h"
+#include <stdarg.h>
 
 extern void outb(uint16_t port, uint8_t value);
 extern uint8_t inb(uint16_t port);
@@ -61,13 +62,13 @@ static void serial_print_unsigned(uint64_t val, int base, int uppercase, int pad
     if (val == 0) {
         buf[pos++] = '0';
     } else {
-        while (val > 0 && pos < 64) {
+        while (val > 0) {
             buf[pos++] = digits[val % base];
             val /= base;
         }
     }
 
-    while (pos < pad_width && pos < 64) {
+    while (pos < pad_width) {
         buf[pos++] = pad_char;
     }
 
@@ -85,11 +86,14 @@ static void serial_print_signed(int64_t val)
     serial_print_unsigned((uint64_t)val, 10, 0, 0, ' ');
 }
 
-void serial_vprintf(const char *fmt, va_list args)
+void serial_printf(const char *fmt, ...)
 {
     if (!fmt) {
         return;
     }
+
+    va_list args;
+    va_start(args, fmt);
 
     for (int i = 0; fmt[i] != '\0'; i++) {
         if (fmt[i] != '%') {
@@ -105,7 +109,7 @@ void serial_vprintf(const char *fmt, va_list args)
             break;
         }
 
-        // Parse optional padding (e.g. %04x, %016lx)
+        // Parse optional padding (e.g. %04x, %08lx, %016lx)
         char pad_char = ' ';
         int pad_width = 0;
         if (fmt[i] == '0') {
@@ -177,7 +181,7 @@ void serial_vprintf(const char *fmt, va_list args)
                 break;
             }
             case 'p': {
-                uint64_t v = (uint64_t)(uintptr_t)va_arg(args, void *);
+                uint64_t v = (uint64_t)va_arg(args, void *);
                 serial_print("0x");
                 serial_print_unsigned(v, 16, 0, 16, '0');
                 break;
@@ -193,12 +197,6 @@ void serial_vprintf(const char *fmt, va_list args)
             }
         }
     }
-}
 
-void serial_printf(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    serial_vprintf(fmt, args);
     va_end(args);
 }
