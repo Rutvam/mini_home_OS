@@ -1,8 +1,8 @@
 #include <elf.h>
 #include <efi.h>
 #include <efilib.h>
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef FUNCTION_BOOT_H
+#define FUNCTION_BOOT_H
 
 // These structures come from:
 // https://github.com/KNNSpeed/Simple-UEFI-Bootloader
@@ -28,7 +28,7 @@ struct LOADER_PARAMS {
 	UINTN					Kernel_Pages;
 
 	EFI_RUNTIME_SERVICES	*RTServices;
-	struct GPU_CONFIG		*GPU_Configs;
+	struct GPU_CONFIG		GPU_Configs;
 	EFI_FILE_INFO			*FileMeta;
 	EFI_CONFIGURATION_TABLE	*ConfigTables;
 	UINTN					Number_of_ConfigTables;
@@ -53,7 +53,5 @@ UINTN VerifyCopy(UINT8 *Destination, UINT8 *Source, UINTN Size);
 EFI_STATUS LoadSegment(EFI_BOOT_SERVICES *BS, Elf64_Phdr *ph);
 EFI_STATUS LoadELFSegments(EFI_BOOT_SERVICES *BS, Elf64_Ehdr *Header, VOID *KernelBuffer, EFI_PHYSICAL_ADDRESS *KernelBaseAddress, UINTN *KernelPages);
 EFI_STATUS GetFinalMemoryMap(EFI_BOOT_SERVICES *BS, EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MemoryMapSize, UINTN *CurrentMapSize, UINTN *MapKey, UINTN *DescriptorSize, UINT32 *DescriptorVersion);
-
-
 
 #endif

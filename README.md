@@ -1,45 +1,71 @@
-# Mini OS maison
+# Homemade Mini OS
 
-## description
+## Description
 
-Ce projet est un mini OS maison permetant de jouer a des jeux dans le future et avoir un mini shell.
+This project is a homemade mini operating system designed to eventually support games and provide a basic shell.
 
-## Structure des fichier
+## How to install the project
 
-```zsh
-❯ tree
-.
+```shell
+git clone https://www.github.com/Rutvam/mini_home_os.git
+```
+
+```shell
+cd /home/username/mini_home_os
+```
+
+```shell
+make clean && make compile-all
+```
+
+## Tools
+
+- gcc
+- nasm
+- make
+- QEMU or VBox (VirtualBox)
+
+  Required for contributors who want to test the project.
+
+- sudo
+
+**Don't forget to install any missing tools.**
+
+### How to install the basic compilation tools
+
+**Arch Linux:**
+```shell
+sudo pacman -S gcc nasm make
+```
+
+**Debian / Ubuntu:**
+```shell
+sudo apt install gcc nasm make
+```
+
+## File Structure
+
+```shell
+❯ tree ./mini_home_os
+./mini_home_os
 ├── boot
 │   ├── function.c
 │   ├── function.h
-│   ├── main.c
-│   └── main.rs
+│   └── main.c
 ├── compile
 │   ├── boot
 │   │   ├── boot.efi
+│   │   ├── boot.so
 │   │   ├── function.o
 │   │   └── main.o
-│   └── kernel
-│       ├── function.o
-│       ├── global_value.o
-│       ├── graphics.o
-│       ├── IDT.o
-│       ├── kernel.elf
-│       ├── kernel_entry.o
-│       ├── main.o
-│       ├── math.o
-│       ├── memory.o
-│       ├── police.o
-│       ├── pong
-│       │   └── main_pong.o
-│       ├── print_function.o
-│       ├── random.o
-│       ├── shell
-│       │   └── main_shell.o
-│       └── shutdown
-│           └── main_shutdown.o
+│   ├── kernel
+│   │   └── kernel.elf
+│   └── keyboard_driver
+│       ├── main_keyboard_driver.o
+│       └── main.o
 ├── doc
-│   └── ACPI.md
+│   ├── ACPI.md
+│   └── base_rust.md
 ├── esp.img
 ├── esp.vdi
 ├── kernel
@@ -84,94 +110,72 @@ Ce projet est un mini OS maison permetant de jouer a des jeux dans le future et 
 │       ├── main_shutdown.c
 │       └── main_shutdown.h
 ├── keyboard_driver
-│   ├── main_keyboard_driver.c
-│   └── main_keyboard_driver.h
+│   ├── main.c
+│   └── main.h
 ├── LICENSE
 ├── Makefile
 ├── ovmf_vars.fd
 └── README.md
 
-24 directories, 58 files
+22 directories, 47 files
 ```
 
-## Futur amelioration
+## Future Improvements
 
-- [X] Preparer la fonction shutdown dans le dossier `./shutdown` avec le fichier principal `./shutdown/main_shutdown.c`.
+- [X] Replace the BIOS-compatible bootloader (`./boot/boot.asm`) with a UEFI-compatible bootloader (`./boot/boot.c`).
 
-- [X] Passer de bootloader compatible avec le BIOS (`./boot/boot.asm`) vers bootloader compatible avec l'UEFI (`./boot/boot.c`).
+  - [X] Organize the bootloader code and ensure that GCC reports no compilation errors.
 
-	- [X] Structurer le bootloader et faire en sorte que le compilateur gcc ne trouve aucune faute.
+  - [X] Update the `Makefile` to support the new bootloader structure.
 
-	- [X] Modifier le `Makefile` pour le rendre compatible à la nouvelle structure du bootloader.
+  - [X] Perform one final test to verify that the new bootloader works, then remove the old bootloader (`./boot/boot.asm`).
 
-	- [X] Esseiler une derrnier fois si le bootloader final fonctionne, pour finalment supprimer l'ancien bootloader (`./boot/boot.asm`).
+    If both `make QEMU` and `make VBox` run without any issues, the following command can be used to complete this step:
 
-		Si `make QEMU` et `make VBox` fonctionne sans problème on utilise cette commande pour conslure cette etape.
+    ```shell
+    rm -rf ./boot/boot.asm
+    ```
 
-		```shell
-		rm -rf ./boot/boot.asm
-		```
+- [X] Finalize kernel compatibility with the new bootloader.
 
-- [ ] Finaliser la compatibilité du kernel avec le nouveau bootloader.
+  - [X] Receive bootloader parameters in the kernel.
 
-	- [X] Recevoir les paramètres du bootloader dans le kernel.
+  - [X] Verify the kernel entry point.
 
-	- [X] Vérifier l'entrée du kernel.
+  - [X] Organize the kernel structure.
 
-	- [ ] Ranger la structure du kernel.
+  - [X] Update the `Makefile` to support the new kernel structure.
 
-	- [ ] Modifier le `Makefile` pour le rendre compatible à la nouvelle structure du kernel.
+- [ ] Fix bugs.
 
-	- [ ] Exploiter les informations GOP dans le kernel.
+- [ ] Start implementing the shutdown function.
 
-- [ ] Commencer la fonction shutdown.
-
-## Auteur
+## Author
 
 - Rutvam
 
-	- <https://www.github.com/Rutvam>
+  - <https://www.github.com/Rutvam>
 
-## Auteur indirect
+## Third-Party Code and Acknowledgements
 
-- KNNSpreed
+### KNNSpeed
+    
+- Original project: [Simple-UEFI-Bootloader](https://github.com/KNNSpeed/Simple-UEFI-Bootloader)
 
-	- <https://github.com/KNNSpeed/Simple-UEFI-Bootloader>
+- Original author: KNNSpeed
 
-	- Rutvam a copier:
+- Original version: V2.3
+    
+The following code was reused from the original project:
 
-		```./boot/function.h
-		// ...
-		struct GPU_CONFIG {
-			UINT64 FrameBuffer;
-			UINT64 FrameBuffer_Size;
-			UINT32 width;
-			UINT32 height;
-			UINT32 pitch;
-		};
-		
-		struct LOADER_PARAMS {
-			UINT32					UEFI_Version;
-			UINT32					Bootloader_MajorVersion;
-			UINT32					Bootloader_MinorVersion;
-		
-			UINT32					Memory_Map_Descriptor_Version;
-			UINTN					Memory_Map_Descriptor_Size;
-			EFI_MEMORY_DESCRIPTOR	*Memory_Map;
-			UINTN					Memory_Map_Size;
-		
-			EFI_PHYSICAL_ADDRESS	Kernel_BaseAddress;
-			UINTN					Kernel_Pages;
-		
-			EFI_RUNTIME_SERVICES	*RTServices;
-			struct GPU_CONFIG		*GPU_Configs;
-			EFI_FILE_INFO			*FileMeta;
-			EFI_CONFIGURATION_TABLE	*ConfigTables;
-			UINTN					Number_of_ConfigTables;
-		
-			EFI_TIME				BootTime;
-		};
-		
-		extern struct LOADER_PARAMS Params;
-		// ...
-		```
+- `struct GPU_CONFIG`
+
+- `struct LOADER_PARAMS`
+
+- Related loader parameter definitions
+
+The original code is distributed under its Custom Attribution License ("PD with Credit").
+
+The original source and its licensing terms are acknowledged and respected.
+
+**Date obtained:** 

@@ -72,7 +72,7 @@ struct LOADER_PARAMS {
 	UINTN					Kernel_Pages;
 
 	EFI_RUNTIME_SERVICES	*RTServices;
-	struct GPU_CONFIG		*GPU_Configs;
+	struct GPU_CONFIG		GPU_Configs;
 	EFI_FILE_INFO			*FileMeta;
 	EFI_CONFIGURATION_TABLE	*ConfigTables;
 	UINTN					Number_of_ConfigTables;

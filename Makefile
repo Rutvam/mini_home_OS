@@ -1,7 +1,7 @@
 .PHONY: compile-all BOOT KERNEL ranger VBox QEMU QEMU-debug language clean
 
 BUILD_KERNEL = ./compile/kernel
-CFLAGS_KERNEL = -g -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi -I/usr/include/efi/x86_64 -fno-pic -fno-pie -c -O0 -mno-red-zone -mcmodel=kernel
+CFLAGS_KERNEL = -g3 -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi -I/usr/include/efi/x86_64 -fno-pic -fno-pie -c -O0 -mno-red-zone -mcmodel=kernel
 NASMFLAGS_KERNEL = -f elf64
 LDFLAGS_KERNEL = -n -T
 KERNEL_OBJ = $(BUILD_KERNEL)/main.o\
@@ -19,26 +19,27 @@ KERNEL_OBJ = $(BUILD_KERNEL)/main.o\
 	$(BUILD_KERNEL)/shell/main_shell.o\
 	$(BUILD_KERNEL)/shutdown/main_shutdown.o\
 
+
 BUILD_KEYBOARD_DRIVER = ./compile/keyboard_driver
-CFLAGS_KEYBOARD_DRIVER = -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi -I/usr/include/efi/x86_64 -fno-pic -fno-pie -c -O0
+CFLAGS_KEYBOARD_DRIVER = -g3 -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi -I/usr/include/efi/x86_64 -fno-pic -fno-pie -c -O0
 NASMFLAGS_KEYBOARD_DRIVER = -f elf64
 LDFLAGS_KEYBOARD_DRIVER = -n -T
-KEYBOARD_DRIVER_OBJ = $(BUILD_KEYBOARD_DRIVER)/main_keyboard_driver.o
+KEYBOARD_DRIVER_OBJ = $(BUILD_KEYBOARD_DRIVER)/main.o
 
 BUILD_BOOT = ./compile/boot
-CFLAGS_BOOT = -ffreestanding -fno-stack-protector -fno-pie -c -O0 -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -fshort-wchar -mno-red-zone
+CFLAGS_BOOT = -g3 -ffreestanding -fno-stack-protector -fno-pie -c -O0 -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -fshort-wchar -mno-red-zone
 
 
-compile-all: clean BOOT KERNEL
+compile-all: clean BOOT KERNEL DRIVERS ranger
 
 BOOT: ./boot/main.c \
 	./boot/function.c
-	gcc $(CFLAGS_BOOT) ./boot/main.c     -o $(BUILD_BOOT)/main.o
-	gcc $(CFLAGS_BOOT) ./boot/function.c -o $(BUILD_BOOT)/function.o
+	gcc -g $(CFLAGS_BOOT) ./boot/main.c     -o $(BUILD_BOOT)/main.o
+	gcc -g $(CFLAGS_BOOT) ./boot/function.c -o $(BUILD_BOOT)/function.o
 	
 	ld -nostdlib -znocombreloc -T /usr/lib/elf_x86_64_efi.lds -shared -Bsymbolic /usr/lib/crt0-efi-x86_64.o $(BUILD_BOOT)/main.o $(BUILD_BOOT)/function.o -L/usr/lib -lefi -lgnuefi -o $(BUILD_BOOT)/boot.so
 	objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --output-target=efi-app-x86_64 --subsystem=10 $(BUILD_BOOT)/boot.so $(BUILD_BOOT)/boot.efi
-	rm -rf $(BUILD_BOOT)/boot.o $(BUILD_BOOT)/boot.so
+	# rm -rf $(BUILD_BOOT)/boot.o $(BUILD_BOOT)/boot.so
 
 ranger: BOOT KERNEL DRIVERS
 	ld $(LDFLAGS_KERNEL) ./kernel/linker.ld -o $(BUILD_KERNEL)/kernel.elf $(KERNEL_OBJ) $(KEYBOARD_DRIVER_OBJ)
@@ -130,10 +131,11 @@ QEMU: ranger
 	- cp /usr/share/edk2/x64/OVMF_VARS.4m.fd ./ovmf_vars.fd
 	- cp /usr/share/OVMF/OVMF_VARS_4m.fd ./ovmf_vars.fd
 	qemu-system-x86_64 \
+		-monitor stdio \
 		-drive format=raw,file=esp.img \
 		-m 128M \
 		-drive if=pflash,format=raw,readonly=on,file=$$(dpkg -L ovmf | grep OVMF_CODE | head -n 1) \
-		-d guest_errors #,int,cpu_reset
+		-d guest_errors,int,cpu_reset		
 
 QEMU-debug: ranger
 	- cp /usr/share/edk2/x64/OVMF_VARS.4m.fd ./ovmf_vars.fd
@@ -143,13 +145,17 @@ QEMU-debug: ranger
 		-m 128M \
 		-drive if=pflash,format=raw,readonly=on,file=$$(dpkg -L ovmf | grep OVMF_CODE | head -n 1) \
 		-S -s \
-		# -d guest-errors,int,cpu_reset
-# -S = CPU en pause; -s = QEMU ouvre GDB sur localhost:1234
+		-monitor stdio
+
+# -S = CPU en pause
+# -s = QEMU ouvre GDB sur localhost:1234
 
 
 
 clean:
 	rm -rf $(BUILD_BOOT)
 	rm -rf $(BUILD_KERNEL)
+	rm -rf $(BUILD_KEYBOARD_DRIVER)
 	mkdir -p $(BUILD_BOOT)
 	mkdir -p $(BUILD_KERNEL)
+	mkdir -p $(BUILD_KEYBOARD_DRIVER)

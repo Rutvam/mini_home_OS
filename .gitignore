@@ -1,3 +1,6 @@
 compile/
 .stfolder/
 esp.img
+esp.vdi
+ovmf_vars.fd
+.vscode/
