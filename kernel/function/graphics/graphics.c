@@ -5,6 +5,9 @@
 
 void screen_analyze(void)
 {
+	if (!var.screen.VB)
+		return;
+
 	int j = 0;
 	for (var.screen.cursor_position = 0; var.screen.cursor_position < var.screen.VBSize; var.screen.cursor_position += 2)
 	{

@@ -9,25 +9,13 @@
 
 void scroll_video(void)
 {
-    for (int k = 160; k < 4000; k++)
-        var.screen.VB[k - 160] = var.screen.VB[k];
-
-    for (int k = 3840; k < 4000; k += 2)
-    {
-        var.screen.VB[k] = ' ';
-        var.screen.VB[k + 1] = 0x0F;
-    }
-
-    var.screen.cursor_position = 3840;
+    scroll();
 }
 
 void clear(void)
 {
 	my.print.outb("\033[2J\033[H");
-	for (int i = 0; i < var.screen.FBSize; i++)
-	{
-		var.screen.FB[i] = 0x000000;
-	}
+	clear_screen();
 	return;
 }
 
