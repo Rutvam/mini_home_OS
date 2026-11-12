@@ -37,6 +37,11 @@ EFI_STATUS AllocateKernelBuffer(EFI_BOOT_SERVICES *BS, UINTN Size, VOID **Buffer
 		return PrintError(L"AllocatePool", status);
 	}
 
+	if (Size == 0 || Buffer == NULL)
+	{
+		return EFI_INVALID_PARAMETER;
+	}
+
 	Print(L"\t[OK] Pool allocation successful\r\n");
 	Print(L"\t\tStart address : 0x%lx\r\n", (UINTN)*Buffer);
 	Print(L"\t\tSize          : 0x%lx (%lu bytes)\r\n", Size, Size);
@@ -229,7 +234,75 @@ EFI_STATUS ValidateELF(Elf64_Ehdr *Header)
 	return EFI_SUCCESS;
 }
 
+EFI_STATUS ValidateEntryPoint(Elf64_Ehdr *Header, UINTN KernelSize)
+{
+	if (Header->e_type != ET_EXEC)
+	{
+		Print(L"\t[ERROR] Kernel is not ET_EXEC\r\n");
+		return EFI_LOAD_ERROR;
+	}
 
+	if (Header->e_phentsize != sizeof(Elf64_Phdr) || Header->e_phnum == 0)
+	{
+		Print(L"\t[ERROR] Invalid program header table\r\n");
+		return EFI_LOAD_ERROR;
+	}
+
+	// Check that the program header table is inside the ELF file.
+	if (Header->e_phoff > KernelSize || Header->e_phnum > (KernelSize - Header->e_phoff) / sizeof(Elf64_Phdr))
+	{
+		Print(L"\t[ERROR] Program header table out of bounds\r\n");
+		return EFI_LOAD_ERROR;
+	}
+
+	Elf64_Phdr *ProgramHeaders = (Elf64_Phdr *)((UINT8 *)Header + Header->e_phoff);
+
+	UINT64 Entry = Header->e_entry;
+	BOOLEAN EntryFound = FALSE;
+	BOOLEAN LoadSegmentFound = FALSE;
+
+	for (UINT16 i = 0; i < Header->e_phnum; i++)
+	{
+		Elf64_Phdr *Segment = &ProgramHeaders[i];
+		if (Segment->p_type != PT_LOAD)
+		{
+			continue;
+		}
+
+		LoadSegmentFound = TRUE;
+		if (Segment->p_filesz > Segment->p_memsz)
+		{
+			return EFI_LOAD_ERROR;
+		}
+
+		if (Segment->p_offset > KernelSize || Segment->p_filesz > KernelSize - Segment->p_offset)
+		{
+			Print(L"\t[ERROR] Segment exceeds ELF file bounds\r\n");
+			return EFI_LOAD_ERROR;
+		}
+
+		if (Segment->p_memsz > UINT64_MAX - Segment->p_vaddr)
+		{
+			Print(L"\t[ERROR] Segment address overflow\r\n");
+			return EFI_LOAD_ERROR;
+		}
+
+		// Entry must point inside file-backed executable code.
+		if ((Segment->p_flags & PF_X) && Entry >= Segment->p_vaddr && Entry - Segment->p_vaddr < Segment->p_filesz)
+		{
+			EntryFound = TRUE;
+		}
+	}
+
+	if (!LoadSegmentFound || !EntryFound)
+	{
+		Print(L"\t[ERROR] Entry point is not inside executable code\r\n");
+		return EFI_LOAD_ERROR;
+	}
+
+	Print(L"\t[OK] Entry point belongs to an executable PT_LOAD segment\r\n");
+	return EFI_SUCCESS;
+}
 
 // Print the important ELF header information.
 void PrintELFHeader(Elf64_Ehdr *Header)
@@ -372,8 +445,8 @@ EFI_STATUS LoadSegment(EFI_BOOT_SERVICES *BS, Elf64_Phdr *ph)
 	// Fr: Desactiver car il ne copy rien, il faut faire un copy manuel
 	// CopyMem(Destination, Source, ph->p_filesz);
 
-	errors = VerifyCopy(Destination, Source, ph->p_filesz);
-
+	// errors = VerifyCopy(Destination, Source, ph->p_filesz);
+	errors = 1; // Fr: Provoquer une erreur 
 	if (errors != 0) {
 		Print(L"\t[WARNING] CopyMem() verification failed: %lu errors\r\n", errors);
 

@@ -136,14 +136,14 @@ void init_var()
 	var.knopf.shell.value = 1;
 	var.knopf.shutdown.name = "Shutdown";
 	var.knopf.shutdown.value = 0;
-	var.screen.FB = (uint32_t *)(uintptr_t)var.params->GPU_Configs->FrameBuffer;
+	var.screen.FB = (uint32_t *)(uintptr_t)var.params->GPU_Configs.FrameBuffer;
 	var.screen.police = police;
 	var.screen.caracter_width = 8;
 	var.screen.caracter_height = 12;
-	var.screen.FBWidth = (int)var.params->GPU_Configs->width;
-	var.screen.FBHeight = (int)var.params->GPU_Configs->height;
-	var.screen.FBSize = (int)var.params->GPU_Configs->FrameBuffer_Size;
-	var.screen.FBPitch = (int)var.params->GPU_Configs->pitch;
+	var.screen.FBWidth = (int)var.params->GPU_Configs.width;
+	var.screen.FBHeight = (int)var.params->GPU_Configs.height;
+	var.screen.FBSize = (int)var.params->GPU_Configs.FrameBuffer_Size;
+	var.screen.FBPitch = (int)var.params->GPU_Configs.pitch;
 	var.screen.VBWidth = var.screen.FBWidth / var.screen.caracter_width * 2;
 	var.screen.VBHeight = var.screen.FBHeight / var.screen.caracter_height;
 	var.screen.VBSize = var.screen.VBWidth * var.screen.VBHeight;
@@ -182,5 +182,3 @@ void init_function(int is_qemu)
 	seed_random(my.function.time());
 	return;
 }
-
-

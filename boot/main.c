@@ -5,15 +5,13 @@
 #include "./function.h"
 
 // Enter the kernel after UEFI Boot Services have been terminated.
-static void JumpToKernel(Elf64_Ehdr *Header, struct LOADER_PARAMS *Params)
+static void JumpToKernel(UINT64 EntryPoint, struct LOADER_PARAMS *Params)
 {
 	typedef void (*KernelEntry)(struct LOADER_PARAMS *);
 
-	KernelEntry Entry = (KernelEntry)(UINTN)Header->e_entry;
-
+	KernelEntry Entry = (KernelEntry)(UINTN)EntryPoint;
 	Entry(Params);
-
-	// A kernel normally never returns.
+	
 	while (1)
 	{
 		__asm__ volatile ("hlt");
@@ -54,7 +52,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 	UINTN DescriptorSize = 0;
 	UINT32 DescriptorVersion = 0;
 
-	UINT8 MaxStepNumber = 11;
+	UINT8 MaxStepNumber = 10;
 	UINT8 StepNumber = 0;
 
 	InitializeLib(ImageHandle, SystemTable);
@@ -232,6 +230,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 
 	Print(L"\t[OK] Memory map buffer allocated\r\n");
 
+	UINT64 KernelEntryPoint = Header->e_entry;
 
 	// ---------------------------------------------------------------
 	//  ExitBootServices()
@@ -273,12 +272,11 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 
 		Params.BootTime = now;
 
-		Params.GPU_Configs->FrameBuffer = GOP->Mode->FrameBufferBase;
-		Params.GPU_Configs->FrameBuffer_Size = GOP->Mode->FrameBufferSize;
-		Params.GPU_Configs->width = GOP->Mode->Info->HorizontalResolution;
-		Params.GPU_Configs->height = GOP->Mode->Info->VerticalResolution;
-		Params.GPU_Configs->pitch = GOP->Mode->Info->PixelsPerScanLine;
-
+		Params.GPU_Configs.FrameBuffer = GOP->Mode->FrameBufferBase;
+		Params.GPU_Configs.FrameBuffer_Size = GOP->Mode->FrameBufferSize;
+		Params.GPU_Configs.width = GOP->Mode->Info->HorizontalResolution;
+		Params.GPU_Configs.height = GOP->Mode->Info->VerticalResolution;
+		Params.GPU_Configs.pitch = GOP->Mode->Info->PixelsPerScanLine;
 
 		// This is the critical transition: After a successful ExitBootServices(), UEFI Boot Services are no longer available.
 		status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, MapKey);
@@ -317,6 +315,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 
 
 	// Jump to the ELF entry point.
-	JumpToKernel(Header, &Params);
+	JumpToKernel(KernelEntryPoint, &Params);
 	return EFI_SUCCESS;
 }

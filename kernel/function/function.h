@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdarg.h>
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef FUNCTION_KERNEL_H
+#define FUNCTION_KERNEL_H
 
 
 struct PRINT_FUNCTION
