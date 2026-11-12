@@ -122,6 +122,7 @@ struct VARIABLE
 };
 
 extern struct VARIABLE var;
+extern uint32_t default_video_buffer[8192];
 void set_loader_params(struct LOADER_PARAMS *params);
 
 #endif

@@ -6,6 +6,8 @@ NASMFLAGS_KERNEL = -f elf64
 LDFLAGS_KERNEL = -n -T
 KERNEL_OBJ = $(BUILD_KERNEL)/main.o\
 	$(BUILD_KERNEL)/IDT.o \
+	$(BUILD_KERNEL)/gdt.o \
+	$(BUILD_KERNEL)/serial.o \
 	$(BUILD_KERNEL)/math.o\
 	$(BUILD_KERNEL)/memory.o\
 	$(BUILD_KERNEL)/police.o\
@@ -89,6 +91,8 @@ KERNEL: ./kernel/main.c \
 	./kernel/function/random/random.c \
 	./kernel/function/print_function/print_function.c \
 	./kernel/idt/IDT.c \
+	./kernel/gdt/gdt.c \
+	./kernel/serial/serial.c \
 	./kernel/data/global_value.c \
 	./kernel/data/graphics_value/police.c \
 	./kernel/function/graphics/graphics.c \
@@ -107,6 +111,8 @@ KERNEL: ./kernel/main.c \
 	gcc $(CFLAGS_KERNEL) ./kernel/function/random/random.c                 -o $(BUILD_KERNEL)/random.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/print_function/print_function.c -o $(BUILD_KERNEL)/print_function.o
 	gcc $(CFLAGS_KERNEL) ./kernel/idt/IDT.c                                -o $(BUILD_KERNEL)/IDT.o
+	gcc $(CFLAGS_KERNEL) ./kernel/gdt/gdt.c                                -o $(BUILD_KERNEL)/gdt.o
+	gcc $(CFLAGS_KERNEL) ./kernel/serial/serial.c                          -o $(BUILD_KERNEL)/serial.o
 	gcc $(CFLAGS_KERNEL) ./kernel/data/global_value.c                      -o $(BUILD_KERNEL)/global_value.o
 	gcc $(CFLAGS_KERNEL) ./kernel/data/graphics_value/police.c             -o $(BUILD_KERNEL)/police.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/graphics/graphics.c             -o $(BUILD_KERNEL)/graphics.o
