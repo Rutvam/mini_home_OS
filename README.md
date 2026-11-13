@@ -20,14 +20,17 @@ make clean && make compile-all
 
 ## Tools
 
-- gcc
+- On linux: gcc
+
+- For Windows: MinGW
+
 - nasm
+
 - make
+
 - QEMU or VBox (VirtualBox)
 
   Required for contributors who want to test the project.
-
-- sudo
 
 **Don't forget to install any missing tools.**
 
