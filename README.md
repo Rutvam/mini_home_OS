@@ -20,9 +20,7 @@ make clean && make compile-all
 
 ## Tools
 
-- On linux: gcc
-
-- For Windows: MinGW
+- gcc
 
 - nasm
 
@@ -45,6 +43,8 @@ sudo pacman -S gcc nasm make
 ```shell
 sudo apt install gcc nasm make
 ```
+
+Warning: For Windows user is WSL the best option for compiling and testing the mini home OS
 
 ## File Structure
 
