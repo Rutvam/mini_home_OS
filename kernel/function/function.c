@@ -1,10 +1,15 @@
-//#include <efi.h>
 #include "./function.h"
-#include "./random/random.h"
 #include "./math/math.h"
-#include "./print_function/print_function.h"
+#include "./random/random.h"
+#include "./memory/memory.h"
 #include "./graphics/graphics.h"
+#include "./print_function/print_function.h"
+#include "../idt/IDT.h"
+#include "../idt/handler/PS2.h"
+#include "../idt/handler/keyboard_handler.h"
+#include "../gdt/GDT.h"
 #include "../data/global_value.h"
+#include "../data/key_position/key_possition.h"
 #include "../data/graphics_value/police.h"
 
 void scroll_video(void)
@@ -63,6 +68,9 @@ void init_time()
 
 void init_var()
 {
+	my.function.memcpy((void *)var.key.pos.qwertz_german, qwertz.german, sizeof(qwertz.german));
+	my.function.memcpy((void *)var.key.pos.qwertz_german_swiss, qwertz.german_swiss, sizeof(qwertz.german_swiss));
+	my.function.memcpy((void *)var.key.pos.qwertz_french_swiss, qwertz.french_swiss, sizeof(qwertz.french_swiss));
 	var.key.TAB.value = 0;
 	var.key.TAB.SCC_press = 0x0F;
 	var.key.TAB.SCC_release = 0x8F;
@@ -136,7 +144,9 @@ void init_var()
 	var.screen.VBHeight = var.screen.FBHeight / var.screen.caracter_height;
 	var.screen.VBSize = var.screen.VBWidth * var.screen.VBHeight;
 	var.screen.pixel_position = 0;
-	var.screen.cursor_position = 0;
+	var.cursor.position = 0;
+	var.cursor.y = 0;
+	var.cursor.x = 0;
 	var.command.shutdown = "shutdown";
 	var.command.exit = "exit";
 	var.command.clear = "clear";
@@ -150,11 +160,18 @@ struct MY_FUNCTION my;
 
 void init_function(int is_qemu)
 {
-	my.init.time = init_time;
 	my.outb = outb;
+	my.inb = inb;
 	my.cmp.key = key;
+	my.ps2.send = ps2_send;
+	my.ps2.read = ps2_read;
+	my.ps2.read_keyboard = read_keyboard;
 	my.cmp.string = string;
 	my.math.pow = pow;
+	my.init.time = init_time;
+	my.init.IDT = init_idt;
+	my.init.GDT = gdt_init;
+	my.init.keyboard = keyboard_init;
 	my.init.var = init_var;
 	my.print.basic = print;
 	my.random.randint = randint;
@@ -162,6 +179,9 @@ void init_function(int is_qemu)
 	my.function.time = time;
 	my.function.clear = clear;
 	my.function.scroll = scroll_video;
+	my.function.memcpy = memcpy;
+	my.interrupt.pic_remap = pic_remap;
+	my.interrupt.set_idt_gate = set_idt_gate;
 	if (is_qemu) {
 		my.print.outb = print_outb;
 	} else {

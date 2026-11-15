@@ -5,6 +5,19 @@
 #ifndef GLOBAL_VALUE_H
 #define GLOBAL_VALUE_H
 
+typedef enum {
+	SCANCODE_SET_UNKNOWN = 0,
+	SCANCODE_SET_1,
+	SCANCODE_SET_2,
+	SCANCODE_SET_3
+} scancode_set_t;
+
+struct KEYBOARD_CONFIG {
+	scancode_set_t set;
+	uint8_t translation_enabled;
+	unsigned char actuel_position[3][128];
+};
+
 struct KNOPF
 {
 	char *name;
@@ -26,8 +39,16 @@ struct KEY
 	uint8_t need_ethendu;
 };
 
+struct KEY_POSITION {
+	const unsigned char qwertz_german[3][128];
+	const unsigned char qwertz_german_swiss[3][128];
+	const unsigned char qwertz_french_swiss[3][128];
+};
+
 struct KEY_VARIABLE
 {
+	struct KEYBOARD_CONFIG conf;
+	struct KEY_POSITION pos;
 	struct KEY ENTER;
 	struct KEY TAB;
 	struct KEY CAPS_LOCK;
@@ -90,6 +111,13 @@ struct TIME_VALUE
 	int day;
 };
 
+struct CURSOR
+{
+	int position;
+	int y;
+	int x;
+};
+
 struct SCREEN_VALUE
 {
 	int VBWidth;
@@ -104,13 +132,13 @@ struct SCREEN_VALUE
 	int caracter_width;
 	int caracter_height;
 	uint8_t (*police)[12][8];
-	int cursor_position;
 	int pixel_position;
 };
 
+
 struct VARIABLE
 {
-
+	struct CURSOR cursor;
 	struct ETHENDU ethendu;
 	struct KNOPF_VARIABLE knopf;
 	struct KEY_VARIABLE key;
@@ -119,6 +147,9 @@ struct VARIABLE
 	struct TIME_VALUE time;
 	struct SCREEN_VALUE screen;
 	struct LOADER_PARAMS *params;
+	uint8_t isQEMU;
+	volatile uint8_t last_scancode;
+	volatile uint8_t scancode;
 };
 
 extern struct VARIABLE var;

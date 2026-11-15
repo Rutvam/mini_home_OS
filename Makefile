@@ -5,7 +5,6 @@ CFLAGS_KERNEL = -g3 -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi 
 NASMFLAGS_KERNEL = -f elf64
 LDFLAGS_KERNEL = -n -T
 KERNEL_OBJ = $(BUILD_KERNEL)/main.o\
-	$(BUILD_KERNEL)/IDT.o \
 	$(BUILD_KERNEL)/math.o\
 	$(BUILD_KERNEL)/memory.o\
 	$(BUILD_KERNEL)/police.o\
@@ -18,19 +17,17 @@ KERNEL_OBJ = $(BUILD_KERNEL)/main.o\
 	$(BUILD_KERNEL)/pong/main_pong.o\
 	$(BUILD_KERNEL)/shell/main_shell.o\
 	$(BUILD_KERNEL)/shutdown/main_shutdown.o\
-
-
-BUILD_KEYBOARD_DRIVER = ./compile/keyboard_driver
-CFLAGS_KEYBOARD_DRIVER = -g3 -m64 -ffreestanding -fno-stack-protector -I/usr/include/efi -I/usr/include/efi/x86_64 -fno-pic -fno-pie -c -O0
-NASMFLAGS_KEYBOARD_DRIVER = -f elf64
-LDFLAGS_KEYBOARD_DRIVER = -n -T
-KEYBOARD_DRIVER_OBJ = $(BUILD_KEYBOARD_DRIVER)/main.o
+	$(BUILD_KERNEL)/gdt/GDT.o \
+	$(BUILD_KERNEL)/idt/IDT.o \
+	$(BUILD_KERNEL)/idt/GP_handler.o \
+	$(BUILD_KERNEL)/idt/keyboard_handler.o \
+	$(BUILD_KERNEL)/idt/PS2.o
 
 BUILD_BOOT = ./compile/boot
 CFLAGS_BOOT = -g3 -ffreestanding -fno-stack-protector -fno-pie -c -O0 -I/usr/include/efi -I/usr/include/efi/x86_64 -fpic -fshort-wchar -mno-red-zone
 
 
-compile-all: clean BOOT KERNEL DRIVERS ranger
+compile-all: clean BOOT KERNEL ranger
 
 BOOT: ./boot/main.c \
 	./boot/function.c
@@ -41,9 +38,7 @@ BOOT: ./boot/main.c \
 	objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --output-target=efi-app-x86_64 --subsystem=10 $(BUILD_BOOT)/boot.so $(BUILD_BOOT)/boot.efi
 	# rm -rf $(BUILD_BOOT)/boot.o $(BUILD_BOOT)/boot.so
 
-ranger: BOOT KERNEL DRIVERS
-	ld $(LDFLAGS_KERNEL) ./kernel/linker.ld -o $(BUILD_KERNEL)/kernel.elf $(KERNEL_OBJ) $(KEYBOARD_DRIVER_OBJ)
-
+ranger: BOOT KERNEL
 	rm -rf $(KERNEL_OBJ)
 	rmdir $(BUILD_KERNEL)/pong
 	rmdir $(BUILD_KERNEL)/shell
@@ -78,9 +73,6 @@ ranger: BOOT KERNEL DRIVERS
 
 	sudo losetup -d $(LODEV)
 
-DRIVERS: ./keyboard_driver/main.c
-	gcc $(CFLAGS_KEYBOARD_DRIVER) ./keyboard_driver/main.c -o $(BUILD_KEYBOARD_DRIVER)/main.o
-
 # Kernel
 KERNEL: ./kernel/main.c \
 	./kernel/function/function.c \
@@ -88,7 +80,11 @@ KERNEL: ./kernel/main.c \
 	./kernel/function/memory/memory.c \
 	./kernel/function/random/random.c \
 	./kernel/function/print_function/print_function.c \
+	./kernel/gdt/GDT.c \
 	./kernel/idt/IDT.c \
+	./kernel/idt/handler/GP_handler.c \
+	./kernel/idt/handler/keyboard_handler.c \
+	./kernel/idt/handler/PS2.c \
 	./kernel/data/global_value.c \
 	./kernel/data/graphics_value/police.c \
 	./kernel/function/graphics/graphics.c \
@@ -99,6 +95,8 @@ KERNEL: ./kernel/main.c \
 	mkdir -p $(BUILD_KERNEL)/pong
 	mkdir -p $(BUILD_KERNEL)/shell
 	mkdir -p $(BUILD_KERNEL)/shutdown
+	mkdir -p $(BUILD_KERNEL)/gdt
+	mkdir -p $(BUILD_KERNEL)/idt
 
 	gcc $(CFLAGS_KERNEL) ./kernel/main.c                                   -o $(BUILD_KERNEL)/main.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/function.c                      -o $(BUILD_KERNEL)/function.o
@@ -106,16 +104,27 @@ KERNEL: ./kernel/main.c \
 	gcc $(CFLAGS_KERNEL) ./kernel/function/memory/memory.c                 -o $(BUILD_KERNEL)/memory.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/random/random.c                 -o $(BUILD_KERNEL)/random.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/print_function/print_function.c -o $(BUILD_KERNEL)/print_function.o
-	gcc $(CFLAGS_KERNEL) ./kernel/idt/IDT.c                                -o $(BUILD_KERNEL)/IDT.o
-	gcc $(CFLAGS_KERNEL) ./kernel/data/global_value.c                      -o $(BUILD_KERNEL)/global_value.o
-	gcc $(CFLAGS_KERNEL) ./kernel/data/graphics_value/police.c             -o $(BUILD_KERNEL)/police.o
 	gcc $(CFLAGS_KERNEL) ./kernel/function/graphics/graphics.c             -o $(BUILD_KERNEL)/graphics.o
+
 	gcc $(CFLAGS_KERNEL) ./kernel/pong/main_pong.c                         -o $(BUILD_KERNEL)/pong/main_pong.o
 	gcc $(CFLAGS_KERNEL) ./kernel/shell/main_shell.c                       -o $(BUILD_KERNEL)/shell/main_shell.o
 	gcc $(CFLAGS_KERNEL) ./kernel/shutdown/main_shutdown.c                 -o $(BUILD_KERNEL)/shutdown/main_shutdown.o
 
-	nasm $(NASMFLAGS_KERNEL) ./kernel/kernel_entry.asm -o $(BUILD_KERNEL)/kernel_entry.o
+	# Data
+	gcc $(CFLAGS_KERNEL) ./kernel/data/global_value.c                      -o $(BUILD_KERNEL)/global_value.o
+	gcc $(CFLAGS_KERNEL) ./kernel/data/graphics_value/police.c             -o $(BUILD_KERNEL)/police.o
 
+	# GDT
+	gcc $(CFLAGS_KERNEL) ./kernel/gdt/GDT.c                                -o $(BUILD_KERNEL)/gdt/GDT.o
+
+	# IDT
+	gcc $(CFLAGS_KERNEL) ./kernel/idt/IDT.c                                -o $(BUILD_KERNEL)/idt/IDT.o
+	gcc $(CFLAGS_KERNEL) ./kernel/idt/handler/GP_handler.c                 -o $(BUILD_KERNEL)/idt/GP_handler.o
+	gcc $(CFLAGS_KERNEL) ./kernel/idt/handler/keyboard_handler.c           -o $(BUILD_KERNEL)/idt/keyboard_handler.o
+	gcc $(CFLAGS_KERNEL) ./kernel/idt/handler/PS2.c                        -o $(BUILD_KERNEL)/idt/PS2.o
+
+	nasm $(NASMFLAGS_KERNEL) ./kernel/kernel_entry.asm -o $(BUILD_KERNEL)/kernel_entry.o
+	ld $(LDFLAGS_KERNEL) ./kernel/linker.ld -o $(BUILD_KERNEL)/kernel.elf $(KERNEL_OBJ) $(KEYBOARD_DRIVER_OBJ)
 
 VBox: ranger
 	-VBoxManage unregistervm "MyOS" --delete
@@ -135,7 +144,8 @@ QEMU: ranger
 		-drive format=raw,file=esp.img \
 		-m 128M \
 		-drive if=pflash,format=raw,readonly=on,file=$$(dpkg -L ovmf | grep OVMF_CODE | head -n 1) \
-		-d guest_errors,int,cpu_reset		
+		-d guest_errors,int,cpu_reset \
+		-no-reboot	
 
 QEMU-debug: ranger
 	- cp /usr/share/edk2/x64/OVMF_VARS.4m.fd ./ovmf_vars.fd

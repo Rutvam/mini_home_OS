@@ -1,7 +1,5 @@
 #include <stdint.h>
-#include "../idt/IDT.h"
 #include "../data/global_value.h"
-#include "../../keyboard_driver/main.h"
 #include "../function/function.h"
 
 uint8_t map[25][80] = {0};
@@ -80,27 +78,19 @@ int main_pong ()
 
 	// 1. On prépare l'affichage
 	my.function.clear();
-	
-	// 2. Configuration matérielle (Une seule fois !)
-	pic_remap();
-	set_idt_gate(33, (uint32_t)(uintptr_t)keyboard_handler_asm);
-	init_idt();
-
-	// 3. On ouvre les vannes du clavier
-	__asm__ __volatile__("sti");
 
 	// 4. Boucle de repos (Le CPU attend sagement ici)
 	while (1)
 	{
 		init_sprites();
-		if (last_scancode) {
-			if (last_scancode == 0x1C)
+		if (var.scancode) {
+			if (var.scancode == 0x1C)
 			{
-				last_scancode = 0;
+				var.scancode = 0;
 				continue;
 			}
 
-            if (var.screen.cursor_position > 4000){
+            if (var.cursor.position > 4000){
                 for (int k = 160; k < 4000; k++)
                 {
                     video_memory[k-160] = video_memory[k];
@@ -112,10 +102,10 @@ int main_pong ()
                     video_memory[k+1] = 0x0F;
                 }
 
-                var.screen.cursor_position = 3840;
+                var.cursor.position = 3840;
             } else {
-                uint8_t sc = last_scancode;
-                last_scancode = 0;
+                uint8_t sc = var.scancode;
+                var.scancode = 0;
                 if (sc > 127)
                 {
                     continue;
@@ -127,7 +117,7 @@ int main_pong ()
 
                 char c;
                 // Essaie de mapper vers un caractère
-                c = qwertz_german[0][sc];
+                c = var.key.conf.actuel_position[0][sc];
                 if (c == 'w' || c == 'W') {}
                 if (c == 's' || c == 'S') {}
             }

@@ -125,20 +125,6 @@ Warning: For Windows user is WSL the best option for compiling and testing the m
 
 ## Future Improvements
 
-- [X] Replace the BIOS-compatible bootloader (`./boot/boot.asm`) with a UEFI-compatible bootloader (`./boot/boot.c`).
-
-  - [X] Organize the bootloader code and ensure that GCC reports no compilation errors.
-
-  - [X] Update the `Makefile` to support the new bootloader structure.
-
-  - [X] Perform one final test to verify that the new bootloader works, then remove the old bootloader (`./boot/boot.asm`).
-
-    If both `make QEMU` and `make VBox` run without any issues, the following command can be used to complete this step:
-
-    ```shell
-    rm -rf ./boot/boot.asm
-    ```
-
 - [X] Finalize kernel compatibility with the new bootloader.
 
   - [X] Receive bootloader parameters in the kernel.
@@ -149,7 +135,9 @@ Warning: For Windows user is WSL the best option for compiling and testing the m
 
   - [X] Update the `Makefile` to support the new kernel structure.
 
-- [ ] Fix bugs.
+- [X] Fix bugs.
+
+- [ ] Keyboard input
 
 - [ ] Start implementing the shutdown function.
 
@@ -180,5 +168,3 @@ The following code was reused from the original project:
 The original code is distributed under its Custom Attribution License ("PD with Credit").
 
 The original source and its licensing terms are acknowledged and respected.
-
-**Date obtained:** 

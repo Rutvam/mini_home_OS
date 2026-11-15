@@ -1,13 +1,10 @@
+#include <stdint.h>
 #ifndef PRINT_FUNCTION_H
 #define PRINT_FUNCTION_H
 
-#define FONT_WIDTH 8
-#define FONT_HEIGHT 12
+// extern int cursor_x;
+// extern int cursor_y;
 
-extern int cursor_x;
-extern int cursor_y;
-
-extern void outb (unsigned short port, unsigned char value);
 void print_outb(const char *text, ...);
 void NO_print(const char *text, ...);
 void video_putchar(char c);

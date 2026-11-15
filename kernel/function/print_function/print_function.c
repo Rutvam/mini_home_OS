@@ -7,91 +7,72 @@
 #include "../../data/graphics_value/police.h"
 #include "../memory/memory.h"
 
-#define COLOR_WHITE 0x00FFFFFF
-#define COLOR_BLACK 0x00000000
-
-/* Cursor coordinates */
-int cursor_x = 0;
-int cursor_y = 0;
-
 static inline void serial_putc(char c)
 {
-    if (my.outb)
-        my.outb(0x3F8, (unsigned char)c);
+	if (my.outb)
+	{
+		my.outb(0x3F8, (unsigned char)c);
+	}
 }
 
 static inline uint32_t *get_fb(void)
 {
-    if (var.screen.FB)
-        return var.screen.FB;
-    if (var.params && var.params->GPU_Configs.FrameBuffer)
-    {
-        var.screen.FB = (uint32_t *)(uintptr_t)var.params->GPU_Configs.FrameBuffer;
-        return var.screen.FB;
-    }
-    return NULL;
+	if (var.screen.FB) {return var.screen.FB;}
+
+	if (var.params && var.params->GPU_Configs.FrameBuffer)
+	{
+		var.screen.FB = (uint32_t *)(uintptr_t)var.params->GPU_Configs.FrameBuffer;
+		return var.screen.FB;
+	}
+
+	return NULL;
 }
 
 static inline int get_screen_width(void)
 {
-    if (var.screen.FBWidth > 0)
-        return var.screen.FBWidth;
-    if (var.params && var.params->GPU_Configs.width > 0)
-        return (int)var.params->GPU_Configs.width;
-    return 800;
+	if (var.screen.FBWidth > 0) {return var.screen.FBWidth;}
+	if (var.params && var.params->GPU_Configs.width > 0) {return (int)var.params->GPU_Configs.width;}
+	return 800;
 }
 
 static inline int get_screen_height(void)
 {
-    if (var.screen.FBHeight > 0)
-        return var.screen.FBHeight;
-    if (var.params && var.params->GPU_Configs.height > 0)
-        return (int)var.params->GPU_Configs.height;
-    return 600;
+	if (var.screen.FBHeight > 0) {return var.screen.FBHeight;}
+	if (var.params && var.params->GPU_Configs.height > 0) {return (int)var.params->GPU_Configs.height;}
+	return 600;
 }
 
 static inline int get_screen_pitch(void)
 {
-    if (var.screen.FBPitch > 0)
-        return var.screen.FBPitch;
-    if (var.params && var.params->GPU_Configs.pitch > 0)
-        return (int)var.params->GPU_Configs.pitch;
-    return get_screen_width();
+	if (var.screen.FBPitch > 0) {return var.screen.FBPitch;}
+	if (var.params && var.params->GPU_Configs.pitch > 0) {return (int)var.params->GPU_Configs.pitch;}
+	return get_screen_width();
 }
 
 void print_outb(const char *text, ...)
 {
-    va_list args;
-    va_start(args, text);
+	va_list args;
+	va_start(args, text);
 
-    for (int i = 0; text[i] != 0x00; i++)
-    {
-        if (text[i] == '%' && text[i + 1] == 'c')
-        {
-            char caracter = (char)va_arg(args, int);
-            serial_putc(caracter);
-            i++;
-        }
-        else if (text[i] == '%' && text[i + 1] == 'd')
-        {
-            int value = va_arg(args, int);
-            char buffer[12];
-            int bi = 0;
+	for (int i = 0; text[i] != 0x00; i++)
+	{
+		if (text[i] == '%' && text[i + 1] == 'c') {
+			char caracter = (char)va_arg(args, int);
+			serial_putc(caracter);
+			i++;
+		} else if (text[i] == '%' && text[i + 1] == 'd') {
+			int value = va_arg(args, int);
+			char buffer[12];
+			int bi = 0;
 
-            if (value == 0)
-            {
-                serial_putc('0');
-            }
-            else
-            {
+			if (value == 0) {
+				serial_putc('0');
+			} else {
                 unsigned int uval;
-                if (value < 0)
-                {
+                if (value < 0) {
                     serial_putc('-');
                     uval = (unsigned int)(-(long long)value);
-                }
-                else
-                {
+                } else {
                     uval = (unsigned int)value;
                 }
 
@@ -132,10 +113,7 @@ void print_outb(const char *text, ...)
     va_end(args);
 }
 
-void NO_print(const char *text, ...)
-{
-    (void)text;
-}
+void NO_print(const char *text, ...) {(void)text;}
 
 /* Fast memory movement for scrolling */
 static void *fast_memmove(void *dest, const void *src, size_t n)
@@ -193,9 +171,9 @@ void clear_screen(void)
         memset(fb, 0, (size_t)var.screen.FBSize);
     }
 
-    cursor_x = 0;
-    cursor_y = 0;
-    var.screen.cursor_position = 0;
+    var.cursor.x = 0;
+    var.cursor.y = 0;
+    var.cursor.position = 0;
 }
 
 void video_clear(void)
@@ -210,25 +188,25 @@ void scroll(void)
     int screen_height = get_screen_height();
     int pitch = get_screen_pitch();
 
-    if (!fb || screen_height <= FONT_HEIGHT || pitch <= 0)
+    if (!fb || screen_height <= var.screen.caracter_height || pitch <= 0)
     {
-        cursor_y = (screen_height > FONT_HEIGHT) ? (screen_height - FONT_HEIGHT) : 0;
+        var.cursor.y = (screen_height > var.screen.caracter_height) ? (screen_height - var.screen.caracter_height) : 0;
         return;
     }
 
-    size_t rows_to_copy = (size_t)(screen_height - FONT_HEIGHT);
+    size_t rows_to_copy = (size_t)(screen_height - var.screen.caracter_height);
     size_t copy_bytes = rows_to_copy * (size_t)pitch * sizeof(uint32_t);
 
     /* a) Shift framebuffer rows up by copying (screen_height - FONT_HEIGHT) rows up */
-    fast_memmove(fb, fb + ((size_t)FONT_HEIGHT * pitch), copy_bytes);
+    fast_memmove(fb, fb + ((size_t)var.screen.caracter_height * pitch), copy_bytes);
 
     /* b) Clear the newly freed bottom text row with the background color (black) */
-    size_t bottom_bytes = (size_t)FONT_HEIGHT * (size_t)pitch * sizeof(uint32_t);
+    size_t bottom_bytes = (size_t)var.screen.caracter_height * (size_t)pitch * sizeof(uint32_t);
     uint32_t *bottom_row = fb + (rows_to_copy * pitch);
     memset(bottom_row, 0, bottom_bytes);
 
     /* c) Set cursor_y = screen_height - FONT_HEIGHT */
-    cursor_y = screen_height - FONT_HEIGHT;
+	var.cursor.y = screen_height - var.screen.caracter_height;
 }
 
 /* Render character glyph to framebuffer */
@@ -246,7 +224,7 @@ static void draw_char(char c, int x, int y, uint32_t fg_color, uint32_t bg_color
     int has_glyph = (uc >= 1 && uc <= 126);
     int font_idx = has_glyph ? (uc - 1) : 0;
 
-    for (int dy = 0; dy < FONT_HEIGHT; dy++)
+    for (int dy = 0; dy < var.screen.caracter_height; dy++)
     {
         int py = y + dy;
         if (py < 0 || py >= screen_height)
@@ -254,7 +232,7 @@ static void draw_char(char c, int x, int y, uint32_t fg_color, uint32_t bg_color
 
         size_t row_offset = (size_t)py * (size_t)pitch;
 
-        for (int dx = 0; dx < FONT_WIDTH; dx++)
+        for (int dx = 0; dx < var.screen.caracter_width; dx++)
         {
             int px = x + dx;
             if (px < 0 || px >= screen_width)
@@ -266,7 +244,8 @@ static void draw_char(char c, int x, int y, uint32_t fg_color, uint32_t bg_color
 
             fb[row_offset + px] = color;
         }
-    }
+    }    
+    var.cursor.position = ((var.cursor.y / var.screen.caracter_height) * (var.screen.VBWidth/2)) + (var.cursor.x / var.screen.caracter_width);
 }
 
 void video_putchar(char c)
@@ -277,16 +256,16 @@ void video_putchar(char c)
     /* Handle '\r': reset cursor_x = 0 */
     if (c == '\r')
     {
-        cursor_x = 0;
+        var.cursor.x = 0;
         return;
     }
 
     /* Handle '\n': reset cursor_x = 0 and increment cursor_y += FONT_HEIGHT */
     if (c == '\n')
     {
-        cursor_x = 0;
-        cursor_y += FONT_HEIGHT;
-        if ((cursor_y + FONT_HEIGHT) > screen_height)
+        var.cursor.x = 0;
+        var.cursor.y += var.screen.caracter_height;
+        if ((var.cursor.y + var.screen.caracter_height) > screen_height)
         {
             scroll();
         }
@@ -296,13 +275,13 @@ void video_putchar(char c)
     /* Handle '\t': advance to next 4-space tab stop */
     if (c == '\t')
     {
-        int tab_stop = FONT_WIDTH * 4;
-        cursor_x = ((cursor_x / tab_stop) + 1) * tab_stop;
-        if ((cursor_x + FONT_WIDTH) > screen_width)
+        int tab_stop = var.screen.caracter_width * 4;
+        var.cursor.x = ((var.cursor.x / tab_stop) + 1) * tab_stop;
+        if ((var.cursor.x + var.screen.caracter_width) > screen_width)
         {
-            cursor_x = 0;
-            cursor_y += FONT_HEIGHT;
-            if ((cursor_y + FONT_HEIGHT) > screen_height)
+            var.cursor.x = 0;
+            var.cursor.y += var.screen.caracter_height;
+            if ((var.cursor.y + var.screen.caracter_height) > screen_height)
             {
                 scroll();
             }
@@ -313,36 +292,36 @@ void video_putchar(char c)
     /* Handle '\b': backspace */
     if (c == '\b')
     {
-        if (cursor_x >= FONT_WIDTH)
+        if (var.cursor.x >= var.screen.caracter_width)
         {
-            cursor_x -= FONT_WIDTH;
-            draw_char(' ', cursor_x, cursor_y, COLOR_WHITE, COLOR_BLACK);
+            var.cursor.x -= var.screen.caracter_width;
+            draw_char(' ', var.cursor.x, var.cursor.y, 0xFFFFFFFF, 0x00000000);
         }
         return;
     }
 
     /* Automatic wrap: if (cursor_x + FONT_WIDTH) > screen_width */
-    if ((cursor_x + FONT_WIDTH) > screen_width)
+    if ((var.cursor.x + var.screen.caracter_width) > screen_width)
     {
-        cursor_x = 0;
-        cursor_y += FONT_HEIGHT;
-        if ((cursor_y + FONT_HEIGHT) > screen_height)
+        var.cursor.x = 0;
+        var.cursor.y += var.screen.caracter_height;
+        if ((var.cursor.y + var.screen.caracter_height) > screen_height)
         {
             scroll();
         }
     }
 
     /* Vertical scrolling if needed */
-    if ((cursor_y + FONT_HEIGHT) > screen_height)
+    if ((var.cursor.y + var.screen.caracter_height) > screen_height)
     {
         scroll();
     }
 
     /* Render character */
-    draw_char(c, cursor_x, cursor_y, COLOR_WHITE, COLOR_BLACK);
+    draw_char(c, var.cursor.x, var.cursor.y, 0xFFFFFFFF, 0x00000000);
 
     /* Advance cursor_x += FONT_WIDTH */
-    cursor_x += FONT_WIDTH;
+    var.cursor.x += var.screen.caracter_width;
 }
 
 void video_print(const char *text)
